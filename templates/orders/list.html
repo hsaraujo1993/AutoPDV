@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="orders-section" style="max-width:1200px; margin: 0 auto; padding: 2.5rem 2rem 0 2rem;">
+    <h2 class="mb-4" style="color:var(--color-primary);font-size:2rem;font-weight:700; text-align:center;">Pedidos</h2>
+    <div id="messages" class="messages"></div>
+    <div class="table-responsive">
+        <table id="orders-table" class="styled-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Data</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                    <th class="text-center">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Dados via JS -->
+            </tbody>
+        </table>
+    </div>
+    <button class="btn create-btn d-flex align-items-center gap-2 mt-3" onclick="showForm()">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M12 5v14m7-7H5"/></svg>
+        Adicionar Pedido
+    </button>
+    <div id="form-container" class="form-card mt-4" style="display:none;"></div>
+</section>
+<script src="/static/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/orders.js"></script>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Itens do Carrinho</h2>
+
+<div id="messages" class="messages"></div>
+
+<div id="cart-items-container" class="cart-table" data-cart-id="{{ cart_id }}">
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th>Quantidade</th>
+                <th>Preço Unitário (R$)</th>
+                <th>Subtotal (R$)</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+    </table>
+
+    <div style="margin-top:1rem; display: flex; justify-content: space-between; align-items: center;" id="cart-controls">
+        <div>
+            <button class="btn create-btn" onclick="showAddItemForm()">Adicionar Item</button>
+            <button class="btn finalize-btn" id="finalize-cart-btn">Finalizar Pedido</button>
+        </div>
+        <div class="total-amount">
+            </div>
+    </div>
+</div>
+
+<div id="form-container" class="form-card" style="display:none;"></div>
+
+<script src="/static/js/cart_detail.js"></script>
+{% endblock %}
