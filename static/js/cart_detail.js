@@ -128,9 +128,11 @@ function renderCart(items) {
                     <td>${i.quantity}</td>
                     <td>${unitPrice.toFixed(2)}</td>
                     <td>${subtotal.toFixed(2)}</td>
-                    <td style="text-align:center;">
-                        <button class="btn edit" onclick="editItem('${i.id}')">Editar</button>
-                        <button class="btn delete" onclick="deleteItem('${i.id}')">Excluir</button>
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <button class="btn btn-success edit" onclick="editItem('${i.id}')">Editar</button>
+                            <button class="btn btn-danger delete" onclick="deleteItem('${i.id}')">Excluir</button>
+                        </div>
                     </td>
                 </tr>
             `;
@@ -174,8 +176,8 @@ window.showAddItemForm = async function() {
             <form id="add-item-form">
                 <select name="product" required>${selectOptions}</select>
                 <input type="number" name="quantity" placeholder="Quantidade" required min="1" max="0">
-                <button type="submit" class="btn create-btn">Adicionar</button>
-                <button type="button" class="btn" onclick="hideForm()">Cancelar</button>
+                <button type="submit" class="btn btn-success create-btn">Adicionar</button>
+                <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancelar</button>
             </form>
         `;
 
@@ -259,8 +261,10 @@ window.editItem = function(id) {
             <p>Produto: ${item.product_name}</p>
             <input type="hidden" name="id" value="${item.id}">
             <input type="number" name="quantity" value="${item.quantity}" required min="1">
-            <button type="submit" class="btn update-btn">Salvar</button>
-            <button type="button" class="btn" onclick="hideForm()">Cancelar</button>
+            <div class="d-flex justify-content-end gap-2 mt-2">
+                <button type="submit" class="btn btn-success update-btn">Salvar</button>
+                <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancelar</button>
+            </div>
         </form>
     `;
 

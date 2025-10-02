@@ -35,5 +35,5 @@ urlpatterns = [
     path('precos/', PrecosView.as_view(), name='precos'),
     path('carrinho/', CarrinhoView.as_view(), name='carrinho'),
     path('orders/', OrdersView.as_view(), name='orders'),
-    path('cart_items/', include('cart_items.urls')),
+    path('cart_items/', cart_detail.as_view(), name=''),
 ]

@@ -68,14 +68,16 @@ function renderPrecos(data) {
                 <td>${p.sale_price ?? ''}</td>
                 <td>${p.profit_margin ?? ''}</td>
                 <td style="text-align:center;">
-                    <button class="btn edit" onclick="editPreco('${id}')" title="Editar Preço">
-                        <svg width='16' height='16' fill='none' viewBox='0 0 24 24' style='vertical-align:middle;margin-right:2px;'><path stroke='currentColor' stroke-width='2' d='M16.5 5.5l2 2a2 2 0 010 2.83l-8.5 8.5a2 2 0 01-1.41.59H5v-3.09a2 2 0 01.59-1.41l8.5-8.5a2 2 0 012.91 0z'/></svg>
-                        Editar
-                    </button>
-                    <button class="btn delete" onclick="deletePreco('${id}')" title="Excluir Preço">
-                        <svg width='16' height='16' fill='none' viewBox='0 0 24 24' style='vertical-align:middle;margin-right:2px;'><path stroke='currentColor' stroke-width='2' d='M6 7h12M9 7V5a3 3 0 016 0v2m-7 0h8m-9 2v10a2 2 0 002 2h6a2 2 0 002-2V9'/></svg>
-                        Excluir
-                    </button>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-success edit" onclick="editPreco('${id}')" title="Editar Preço">
+                            <svg width='16' height='16' fill='none' viewBox='0 0 24 24' style='vertical-align:middle;margin-right:2px;'><path stroke='currentColor' stroke-width='2' d='M16.5 5.5l2 2a2 2 0 010 2.83l-8.5 8.5a2 2 0 01-1.41.59H5v-3.09a2 2 0 01.59-1.41l8.5-8.5a2 2 0 012.91 0z'/></svg>
+                            Editar
+                        </button>
+                        <button class="btn btn-danger delete" onclick="deletePreco('${id}')" title="Excluir Preço">
+                            <svg width='16' height='16' fill='none' viewBox='0 0 24 24' style='vertical-align:middle;margin-right:2px;'><path stroke='currentColor' stroke-width='2' d='M6 7h12M9 7V5a3 3 0 016 0v2m-7 0h8m-9 2v10a2 2 0 002 2h6a2 2 0 002-2V9'/></svg>
+                            Excluir
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;

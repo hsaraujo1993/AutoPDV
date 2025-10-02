@@ -1,4 +1,4 @@
-// produtos.js
+// URLs da API
 const API_URL = '/api/v1/stocks/';
 const API_PRODUCTS_URL = '/api/v1/products/';
 
@@ -6,6 +6,9 @@ const API_PRODUCTS_URL = '/api/v1/products/';
 const messagesDiv = document.getElementById('messages');
 const formContainer = document.getElementById('form-container');
 const tableBody = document.querySelector('#estoque-table tbody');
+
+// Caches de dados
+const productsCache = {};
 
 // ======= UTILIDADES =======
 function getCookie(name) {
@@ -36,7 +39,17 @@ function hideLoading() {
     messagesDiv.innerHTML = '';
 }
 
-// ======= FETCH ESTOQUE =======
+// ======= FETCH DATA =======
+async function fetchProducts() {
+    try {
+        const res = await fetch(API_PRODUCTS_URL);
+        const data = await res.json();
+        data.forEach(p => (productsCache[p.id] = p));
+    } catch (err) {
+        console.error('Erro ao carregar produtos', err);
+    }
+}
+
 async function fetchEstoque() {
     showLoading();
     try {
@@ -51,34 +64,41 @@ async function fetchEstoque() {
     }
 }
 
+async function init() {
+    await fetchProducts();
+    fetchEstoque();
+}
+
 // ======= RENDER =======
 function renderEstoque(data) {
     tableBody.innerHTML = '';
-    data.forEach(e => {
-        const id = e.stock_id || e.id;
-        const produtoBadge = e.product_name ? `<span class='badge bg-primary'>${e.product_name}</span>` : '-';
+    data.forEach(item => {
+        const id = item.id;
+        const produto = productsCache[item.product] || { name: 'Produto não encontrado' };
         tableBody.innerHTML += `
             <tr class="fade-in">
-                <td>${produtoBadge}</td>
-                <td>${e.quantity != null ? e.quantity : '-'}</td>
-                <td>${e.location ? e.location : '-'}</td>
+                <td><span class='badge bg-primary'>${produto.name || '-'}</span></td>
+                <td>${produto.sku || '-'}</td>
+                <td>${produto.oem_code || '-'}</td>
+                <td>${produto.oem_alternative_code || '-'}</td>
+                <td>${item.quantity != null ? item.quantity : '-'}</td>
+                <td>${item.location ? item.location : '-'}</td>
                 <td class="text-center">
-                    <button class="btn btn-success edit me-2" onclick="editEstoque('${id}')" data-bs-toggle="tooltip" data-bs-placement="top" title="Editar Estoque">
-                        <svg width='16' height='16' fill='none' viewBox='0 0 24 24' style='vertical-align:middle;margin-right:2px;'><path stroke='currentColor' stroke-width='2' d='M16.5 5.5l2 2a2 2 0 010 2.83l-8.5 8.5a2 2 0 01-1.41.59H5v-3.09a2 2 0 01.59-1.41l8.5-8.5a2 2 0 012.91 0z'/></svg>
-                        Editar
-                    </button>
-                    <button class="btn btn-danger delete" onclick="deleteEstoque('${id}')" data-bs-toggle="tooltip" data-bs-placement="top" title="Excluir Estoque">
-                        <svg width='16' height='16' fill='none' viewBox='0 0 24 24' style='vertical-align:middle;margin-right:2px;'><path stroke='currentColor' stroke-width='2' d='M6 7h12M9 7V5a3 3 0 016 0v2m-7 0h8m-9 2v10a2 2 0 002 2h6a2 2 0 002-2V9'/></svg>
-                        Excluir
-                    </button>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-success edit" onclick="editEstoque('${id}')" data-bs-toggle="tooltip" title="Editar Estoque">
+                            Alterar
+                        </button>
+                        <button class="btn btn-danger delete" onclick="deleteEstoque('${id}')" data-bs-toggle="tooltip" title="Excluir Estoque">
+                            Deletar
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
     });
+
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-        new bootstrap.Tooltip(tooltipTriggerEl);
-    });
+    tooltipTriggerList.forEach(el => new bootstrap.Tooltip(el));
     if (!document.getElementById('fade-in-style')) {
         const style = document.createElement('style');
         style.id = 'fade-in-style';
@@ -204,7 +224,7 @@ async function deleteEstoque(id) {
     const csrftoken = getCookie('csrftoken');
 
     try {
-        const res = await fetch(API_URL + id + '/', { 
+        const res = await fetch(API_URL + id + '/', {
             method: 'DELETE',
             headers: {
                 'X-CSRFToken': csrftoken,
@@ -219,4 +239,4 @@ async function deleteEstoque(id) {
 }
 
 // ======= INIT =======
-document.addEventListener('DOMContentLoaded', fetchEstoque);
+document.addEventListener('DOMContentLoaded', init);

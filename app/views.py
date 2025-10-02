@@ -1,3 +1,4 @@
+from django.shortcuts import render
 from django.views.generic import TemplateView
 
 class FornecedoresView(TemplateView):
@@ -26,3 +27,10 @@ class OrdersView(TemplateView):
 
 class HomeView(TemplateView):
     template_name = 'home/home.html'
+
+def cart_detail(request, cart_id):
+    """
+    Renderiza a página de detalhes de um carrinho específico.
+    O cart_id é passado do URL para o template.
+    """
+    return render(request, 'carrinho/cart_detail.html', {'cart_id': cart_id})

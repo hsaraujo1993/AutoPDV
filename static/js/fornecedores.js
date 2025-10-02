@@ -136,7 +136,14 @@ async function populateForm(id) {
 // ======= CRUD FUNCTIONS =======
 async function createFornecedor() {
     const form = document.getElementById('fornecedor-form');
-    const data = Object.fromEntries(new FormData(form));
+    const formData = new FormData(form);
+    const data = {
+        name: formData.get('name'),
+        contact_email: formData.get('email'),
+        phone_number: formData.get('phone'),
+        address: formData.get('address'),
+        cnpj: formData.get('cnpj'),
+    };
     const csrftoken = getCookie('csrftoken');
 
     try {
@@ -144,7 +151,7 @@ async function createFornecedor() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken, // Adiciona o cabeçalho CSRF
+                'X-CSRFToken': csrftoken,
             },
             body: JSON.stringify(data)
         });
@@ -163,7 +170,14 @@ function editFornecedor(id) {
 
 async function updateFornecedor(id) {
     const form = document.getElementById('fornecedor-form');
-    const data = Object.fromEntries(new FormData(form));
+    const formData = new FormData(form);
+    const data = {
+        name: formData.get('name'),
+        contact_email: formData.get('email'),
+        phone_number: formData.get('phone'),
+        address: formData.get('address'),
+        cnpj: formData.get('cnpj'),
+    };
     const csrftoken = getCookie('csrftoken');
 
     try {
@@ -171,7 +185,7 @@ async function updateFornecedor(id) {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken, // Adiciona o cabeçalho CSRF
+                'X-CSRFToken': csrftoken,
             },
             body: JSON.stringify(data)
         });

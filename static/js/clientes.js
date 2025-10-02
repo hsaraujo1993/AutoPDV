@@ -61,13 +61,12 @@ function renderClientes(data) {
                 <td>${c.email ? c.email : '-'}</td>
                 <td>${c.phone ? c.phone : '-'}</td>
                 <td>${c.address ? c.address : '-'}</td>
+                <td>${c.type ? c.type : '-'}</td>
                 <td class="text-center">
                     <button class="btn btn-primary edit me-2" onclick="editCliente('${id}')" data-bs-toggle="tooltip" data-bs-placement="top" title="Editar Cliente">
-                        <svg width='16' height='16' fill='none' viewBox='0 0 24 24' style='vertical-align:middle;margin-right:2px;'><path stroke='currentColor' stroke-width='2' d='M16.5 5.5l2 2a2 2 0 010 2.83l-8.5 8.5a2 2 0 01-1.41.59H5v-3.09a2 2 0 01.59-1.41l8.5-8.5a2 2 0 012.91 0z'/></svg>
                         Editar
                     </button>
                     <button class="btn btn-danger delete" onclick="deleteCliente('${id}')" data-bs-toggle="tooltip" data-bs-placement="top" title="Excluir Cliente">
-                        <svg width='16' height='16' fill='none' viewBox='0 0 24 24' style='vertical-align:middle;margin-right:2px;'><path stroke='currentColor' stroke-width='2' d='M6 7h12M9 7V5a3 3 0 016 0v2m-7 0h8m-9 2v10a2 2 0 002 2h6a2 2 0 002-2V9'/></svg>
                         Excluir
                     </button>
                 </td>
@@ -94,9 +93,16 @@ function showForm(id = null) {
     formContainer.innerHTML = `
         <form id="cliente-form">
             <input type="text" name="name" placeholder="Nome" required>
-            <input type="email" name="email" placeholder="Email" required>
-            <input type="text" name="phone" placeholder="Telefone" required>
-            <input type="text" name="address" placeholder="Endereço" required>
+            <input type="email" name="email" placeholder="Email">
+            <input type="text" name="phone" placeholder="Telefone">
+            <input type="text" name="address" placeholder="Endereço">
+            <select name="type" required>
+                <option value="">-- Selecione o Tipo --</option>
+                <option value="mecanico">Mecânico</option>
+                <option value="varejo">Varejo</option>
+                <option value="cliente_final">Cliente Final</option>
+                <option value="cliente_vip">Cliente VIP</option>
+            </select>
             <button type="submit" class="btn create-btn">Salvar</button>
             <button type="button" class="btn delete" onclick="hideForm()">Cancelar</button>
         </form>
@@ -132,6 +138,7 @@ async function populateForm(id) {
         document.querySelector('input[name=email]').value = c.email;
         document.querySelector('input[name=phone]').value = c.phone;
         document.querySelector('input[name=address]').value = c.address;
+        document.querySelector('select[name=type]').value = c.type;
     } catch {
         showMessage('Erro ao carregar cliente.', 'error');
     }
@@ -147,7 +154,7 @@ async function createCliente() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken') // Adiciona o cabeçalho CSRF
+                'X-CSRFToken': getCookie('csrftoken')
             },
             body: JSON.stringify(data)
         });
@@ -173,7 +180,7 @@ async function updateCliente(id) {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken') // Adiciona o cabeçalho CSRF
+                'X-CSRFToken': getCookie('csrftoken')
             },
             body: JSON.stringify(data)
         });
@@ -190,10 +197,10 @@ async function deleteCliente(id) {
     if (!confirm('Tem certeza que deseja excluir este cliente?')) return;
     showLoading();
     try {
-        const res = await fetch(API_URL + id + '/', { 
+        const res = await fetch(API_URL + id + '/', {
             method: 'DELETE',
             headers: {
-                'X-CSRFToken': getCookie('csrftoken') // Adiciona o cabeçalho CSRF
+                'X-CSRFToken': getCookie('csrftoken')
             },
         });
         if (!res.ok) throw new Error(`Erro ${res.status}`);

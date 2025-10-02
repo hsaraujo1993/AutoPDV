@@ -7,7 +7,6 @@
   --color-primary: #7c3aed;
   --color-primary-hover: #a78bfa;
   --color-secondary: #fff;
-  --color-accent: #f472b6;
   --color-border: #2d2d4a;
   --color-table-zebra: #22223b;
   --color-table-header: #7c3aed;
@@ -164,6 +163,16 @@ body {
 .styled-table td {
   vertical-align: middle;
 }
+
+/* Garante que os botões na página de produtos fiquem lado a lado */
+.styled-table td > div {
+  display: flex !important;
+  gap: 0.5rem !important;
+}
+
+.styled-table td .btn {
+  margin-right: 0 !important;
+}
 .styled-table .btn {
   font-size: var(--font-size-sm);
   padding: 0.3rem 0.8rem;
@@ -173,10 +182,12 @@ body {
   border: none;
   transition: background var(--transition), box-shadow var(--transition);
   box-shadow: var(--shadow);
-  margin-right: 0.5rem;
+  /* A regra margin-right foi removida para evitar conflitos */
+  /* margin-right: 0.5rem; */
 }
 .styled-table .btn:last-child {
-  margin-right: 0;
+  /* A regra margin-right foi removida */
+  /* margin-right: 0; */
 }
 .styled-table .btn.edit {
   background: var(--color-primary);
