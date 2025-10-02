@@ -1,26 +1,29 @@
-// cart_detail.js
+// Configurações da API
 const API_CART_URL = '/api/v1/carts/';
-const API_CARTITEM_URL = '/api/v1/cart-items/';
 const API_PRODUCTS_URL = '/api/v1/products/';
 const API_PRICES_URL = '/api/v1/prices/';
 
-const cartId = document.getElementById('cart-items-container').getAttribute('data-cart-id') || window.cart_id;
-const cartItemsContainer = document.getElementById('cart-items-container');
-const formContainer = document.getElementById('form-container');
+// Elementos do DOM
 const messagesDiv = document.getElementById('messages');
-const finalizeBtn = document.getElementById('finalize-cart-btn');
+const formContainer = document.getElementById('form-container');
+const tableBody = document.querySelector('.styled-table tbody');
+const totalAmountDiv = document.querySelector('.total-amount');
 
-let productsCache = null;
-let pricesCache = null;
-window.cartItems = []; // Variável global para armazenar os itens do carrinho
+// Obter o ID do carrinho da URL
+const pathParts = window.location.pathname.split('/').filter(p => p);
+const cartId = pathParts[2];
 
+console.log('Path parts:', pathParts);
+console.log('Cart ID:', cartId);
+
+// Função para obter o CSRF token
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
         const cookies = document.cookie.split(';');
         for (let i = 0; i < cookies.length; i++) {
             const cookie = cookies[i].trim();
-            if (cookie.startsWith(name + '=')) {
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                 break;
             }
@@ -29,332 +32,300 @@ function getCookie(name) {
     return cookieValue;
 }
 
-function showMessage(msg, type = 'success', timeout = 3000) {
-    messagesDiv.innerHTML = `<div class="${type}">${msg}</div>`;
-    if (type !== 'error') {
-        setTimeout(() => messagesDiv.innerHTML = '', timeout);
-    }
+// Função para mostrar mensagens
+function showMessage(message, type = 'info') {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `alert alert-${type}`;
+    messageDiv.textContent = message;
+    messagesDiv.appendChild(messageDiv);
+    setTimeout(() => messageDiv.remove(), 5000);
 }
 
-function calculateTotal(items) {
-    return items.reduce((sum, i) => sum + i.quantity * (parseFloat(i.unit_price) || 0), 0);
-}
-
-console.log('cart_detail.js carregado');
-
-async function fetchPricesMap() {
-    if (pricesCache) return pricesCache;
-    try {
-        const res = await fetch(API_PRICES_URL);
-        if (!res.ok) throw new Error(`Erro ao carregar preços ${res.status}`);
-        const prices = await res.json();
-        const pricesMap = prices.reduce((map, p) => {
-            map[p.product] = p.sale_price;
-            return map;
-        }, {});
-        pricesCache = pricesMap;
-        return pricesMap;
-    } catch (e) {
-        showMessage('Erro ao carregar lista de preços.', 'error');
-        console.error("Erro ao carregar preços:", e);
-        return {};
-    }
-}
-
-async function fetchProductsNameMap() {
-    if (productsCache) return productsCache;
-    try {
-        const res = await await fetch(API_PRODUCTS_URL);
-        if (!res.ok) throw new Error(`Erro ao carregar produtos ${res.status}`);
-        const products = await res.json();
-        const namesMap = products.reduce((map, p) => {
-            map[p.id] = p.name;
-            return map;
-        }, {});
-        productsCache = namesMap;
-        return namesMap;
-    } catch (e) {
-        showMessage('Erro ao carregar lista de produtos (nomes).', 'error');
-        console.error("Erro ao carregar produtos:", e);
-        return {};
-    }
-}
-
-async function fetchCartItems() {
-    if (!cartId) {
-        console.log('cartId não encontrado');
-        return;
-    }
-    try {
-        const itemsRes = await fetch(`${API_CART_URL}${cartId}/items/`);
-        console.log('fetchCartItems status:', itemsRes.status);
-        if (!itemsRes.ok) throw new Error(`Erro ${itemsRes.status} ao buscar itens do carrinho`);
-        const items = await itemsRes.json();
-
-        const pricesMap = await fetchPricesMap();
-        const namesMap = await fetchProductsNameMap();
-
-        const enrichedItems = items.map(item => {
-            const productId = item.product;
-            item.unit_price = pricesMap[productId] || 0;
-            item.product_name = namesMap[productId] || 'Produto Desconhecido';
-            return item;
-        });
-
-        console.log('Itens enriquecidos (com preço e nome):', enrichedItems);
-        window.cartItems = enrichedItems;
-        renderCart(enrichedItems);
-    } catch (e) {
-        showMessage('Erro ao carregar ou processar itens do carrinho.', 'error');
-        console.error("Erro em fetchCartItems:", e);
-    }
-}
-
-function renderCart(items) {
-    console.log('renderCart chamada, itens:', items);
-    if (!items) items = [];
-
-    const total = calculateTotal(items);
-    const tableBody = document.querySelector('.styled-table tbody');
-    const totalElement = document.querySelector('.total-amount');
-
-    if (tableBody) {
-        const htmlRows = items.map(i => {
-            const unitPrice = parseFloat(i.unit_price) || 0;
-            const subtotal = i.quantity * unitPrice;
-            return `
-                <tr>
-                    <td>${i.product_name || 'Produto sem Nome'}</td>
-                    <td>${i.quantity}</td>
-                    <td>${unitPrice.toFixed(2)}</td>
-                    <td>${subtotal.toFixed(2)}</td>
-                    <td class="text-center">
-                        <div class="d-flex justify-content-center gap-2">
-                            <button class="btn btn-success edit" onclick="editItem('${i.id}')">Editar</button>
-                            <button class="btn btn-danger delete" onclick="deleteItem('${i.id}')">Excluir</button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-        tableBody.innerHTML = htmlRows || `<tr><td colspan="5" style="text-align:center; padding:1rem;">Nenhum item no carrinho.</td></tr>`;
-    }
-
-    if (totalElement) {
-        totalElement.innerHTML = `<strong>Total: R$ ${total.toFixed(2)}</strong>`;
-    }
-    console.log('HTML do carrinho renderizado');
-}
-
-window.showAddItemForm = async function() {
-    formContainer.style.display = 'block';
-
-    try {
-        const [productsRes, pricesRes] = await Promise.all([
-            fetch(API_PRODUCTS_URL),
-            fetch(API_PRICES_URL)
-        ]);
-
-        if (!productsRes.ok || !pricesRes.ok) {
-             throw new Error("Erro ao carregar dados do produto/preço para o formulário.");
-        }
-
-        const products = await productsRes.json();
-        const prices = await pricesRes.json();
-
-        const pricesMap = prices.reduce((map, p) => {
-            map[p.product] = p.sale_price;
-            return map;
-        }, {});
-
-        const selectOptions = products.map(p => {
-            const price = parseFloat(pricesMap[p.id] || 0).toFixed(2);
-            return `<option value="${p.id}" data-stock="${p.stock_quantity}">${p.name} (R$ ${price}) - Estoque: ${p.stock_quantity}</option>`;
-        }).join('');
-
-        formContainer.innerHTML = `
-            <form id="add-item-form">
-                <select name="product" required>${selectOptions}</select>
-                <input type="number" name="quantity" placeholder="Quantidade" required min="1" max="0">
-                <button type="submit" class="btn btn-success create-btn">Adicionar</button>
-                <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancelar</button>
-            </form>
-        `;
-
-        const select = formContainer.querySelector('select[name=product]');
-        const quantityInput = formContainer.querySelector('input[name=quantity]');
-
-        const selectedOption = select.options[select.selectedIndex];
-        if (selectedOption) {
-            quantityInput.max = selectedOption.dataset.stock;
-        }
-
-        select.addEventListener('change', (e) => {
-            const selectedOption = e.target.options[e.target.selectedIndex];
-            quantityInput.max = selectedOption.dataset.stock;
-            quantityInput.value = 1;
-        });
-
-    } catch(e) {
-        showMessage('Erro ao carregar produtos para o formulário.', 'error');
-        console.error("Erro ao carregar produtos para form:", e);
-    }
-
-    const form = document.getElementById('add-item-form');
-    form.onsubmit = e => {
-        e.preventDefault();
-        const formData = new FormData(form);
-        const productId = formData.get('product');
-        const quantity = parseInt(formData.get('quantity'));
-        addItem(productId, quantity);
-    };
-}
-
-async function addItem(productId, quantity) {
-    if (!cartId || !productId || quantity <= 0) return showMessage('Dados inválidos.', 'error');
-    const csrftoken = getCookie('csrftoken');
-    const pricesMap = await fetchPricesMap();
-    const unitPrice = pricesMap[productId] || 0;
-
-    if (unitPrice === 0) {
-        showMessage('Preço do produto não encontrado.', 'error');
-        return;
-    }
-
-    try {
-        const res = await fetch(API_CARTITEM_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken,
-            },
-            body: JSON.stringify({
-                cart: cartId,
-                product: productId,
-                quantity: quantity,
-                unit_price: unitPrice
-            })
-        });
-        if (!res.ok) throw new Error(`Erro ${res.status}`);
-        hideForm();
-        fetchCartItems();
-        showMessage('Item adicionado ao carrinho!', 'success');
-    } catch(e) {
-        showMessage('Erro ao adicionar item.', 'error');
-        console.error("Erro ao adicionar item:", e);
-    }
-}
-
-window.editItem = function(id) {
-    const itemId = parseInt(id);
-    const item = window.cartItems.find(i => i.id === itemId);
-
-    if (!item) {
-        showMessage('Item não encontrado para edição.', 'error');
-        return;
-    }
-
-    formContainer.style.display = 'block';
-    formContainer.innerHTML = `
-        <form id="edit-item-form">
-            <h3>Editar Quantidade</h3>
-            <p>Produto: ${item.product_name}</p>
-            <input type="hidden" name="id" value="${item.id}">
-            <input type="number" name="quantity" value="${item.quantity}" required min="1">
-            <div class="d-flex justify-content-end gap-2 mt-2">
-                <button type="submit" class="btn btn-success update-btn">Salvar</button>
-                <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancelar</button>
-            </div>
-        </form>
-    `;
-
-    const form = document.getElementById('edit-item-form');
-    form.onsubmit = e => {
-        e.preventDefault();
-        const newQuantity = parseInt(form.querySelector('input[name="quantity"]').value);
-        if (newQuantity > 0) {
-            updateItemQuantity(item.id, newQuantity);
-        } else {
-            showMessage('A quantidade deve ser maior que zero.', 'error');
-        }
-    };
-}
-
-async function updateItemQuantity(itemId, newQuantity) {
-    if (!cartId || !itemId) {
-        showMessage('Dados inválidos para atualização.', 'error');
-        return;
-    }
-
-    const updateUrl = `${API_CART_URL}${cartId}/update-item/${parseInt(itemId)}/`;
-
-    try {
-        const res = await fetch(updateUrl, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({ quantity: newQuantity })
-        });
-
-        if (!res.ok) throw new Error(`Erro ${res.status} ao atualizar a quantidade.`);
-
-        hideForm();
-        fetchCartItems();
-        showMessage('Quantidade atualizada!', 'success');
-    } catch(e) {
-        showMessage('Erro ao atualizar a quantidade.', 'error');
-        console.error("Erro ao atualizar a quantidade:", e);
-    }
-}
-
-window.deleteItem = async function(itemId) {
-    if (!itemId || !cartId) return;
-    const deleteUrl = `${API_CART_URL}${cartId}/remove-item/${parseInt(itemId)}/`;
-    try {
-        const res = await fetch(deleteUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-        });
-        if (res.status === 204 || res.ok) {
-            fetchCartItems();
-            showMessage('Item excluído!', 'success');
-        } else {
-            throw new Error(`Erro ${res.status} ao tentar excluir item.`);
-        }
-    } catch(e) {
-        showMessage('Erro ao excluir item.', 'error');
-        console.error("Erro ao excluir item:", e);
-    }
-}
-
+// Função para ocultar o formulário
 function hideForm() {
     formContainer.style.display = 'none';
     formContainer.innerHTML = '';
 }
 
-if (finalizeBtn) {
-    finalizeBtn.onclick = async () => {
-        try {
-            const res = await fetch(`${API_CART_URL}${cartId}/finalize/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
+// Função para carregar itens do carrinho
+async function fetchCartItems() {
+    try {
+        const url = `${API_CART_URL}${cartId}/`;
+        console.log('Buscando carrinho:', url);
+
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Erro ${res.status}`);
+
+        const cart = await res.json();
+        console.log('Carrinho carregado:', cart);
+
+        // Limpar tabela
+        tableBody.innerHTML = '';
+
+        let total = 0;
+
+        // Preencher tabela com itens
+        if (cart.items && cart.items.length > 0) {
+            cart.items.forEach(item => {
+                console.log('Processando item:', item); // Debug para ver o item
+
+                const produto = item.product_name || 'Produto sem nome';
+                const quantidade = Number(item.quantity) || 0;
+                const preco = Number(item.unit_price) || 0;
+                const subtotal = quantidade * preco;
+
+                console.log('Valores processados:', { produto, quantidade, preco, subtotal }); // Debug
+
+                // Adicionar subtotal ao total
+                total += subtotal;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${produto}</td>
+                    <td>${quantidade}</td>
+                    <td>R$ ${preco.toFixed(2)}</td>
+                    <td>R$ ${subtotal.toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="removeItem(${item.id})">Remover</button>
+                    </td>
+                `;
+
+                console.log('HTML da linha:', row.innerHTML); // Debug
+                tableBody.appendChild(row);
             });
-            if (!res.ok) throw new Error(`Erro ${res.status}`);
-            showMessage('Pedido finalizado!', 'success');
-            fetchCartItems();
-        } catch(e) {
-            showMessage('Erro ao finalizar pedido.', 'error');
-            console.error("Erro ao finalizar pedido:", e);
+        } else {
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum item no carrinho</td></tr>';
         }
-    };
+
+        // Atualizar total
+        totalAmountDiv.innerHTML = `<strong>Total: R$ ${total.toFixed(2)}</strong>`;
+
+    } catch (err) {
+        showMessage('Erro ao carregar itens do carrinho.', 'error');
+        console.error("Erro ao carregar carrinho:", err);
+    }
 }
 
-document.addEventListener('DOMContentLoaded', fetchCartItems);
+// Função para buscar preço de um produto específico
+async function fetchProductPrice(productId) {
+    try {
+        const res = await fetch(`${API_PRICES_URL}?product=${productId}`);
+        if (!res.ok) {
+            console.warn(`Erro ao buscar preço do produto ${productId}`);
+            return 0;
+        }
+        const prices = await res.json();
+        if (Array.isArray(prices) && prices.length > 0) {
+            return parseFloat(prices[0].sale_price || 0);
+        }
+        return parseFloat(prices.sale_price || 0);
+    } catch (err) {
+        console.error(`Erro ao buscar preço do produto ${productId}:`, err);
+        return 0;
+    }
+}
+
+// Função para mostrar formulário de adicionar item
+async function showAddItemForm() {
+    formContainer.style.display = 'block';
+    formContainer.innerHTML = '<p>Carregando produtos...</p>';
+
+    try {
+        const productsRes = await fetch(API_PRODUCTS_URL);
+
+        if (!productsRes.ok) {
+            throw new Error("Erro ao carregar produtos.");
+        }
+
+        const products = await productsRes.json();
+        console.log('Produtos carregados:', products);
+
+        if (!products || products.length === 0) {
+            formContainer.innerHTML = '<div class="alert alert-warning">Nenhum produto disponível.</div>';
+            return;
+        }
+
+        const selectOptions = products.map(p => {
+            return `<option value="${p.id}" data-stock="${p.stock_quantity}">${p.name} - Estoque: ${p.stock_quantity}</option>`;
+        }).join('');
+
+        formContainer.innerHTML = `
+            <form id="add-item-form">
+                <div>
+                    <label for="product-select">Produto:</label>
+                    <select name="product" id="product-select" required>
+                        <option value="">Selecione um produto</option>
+                        ${selectOptions}
+                    </select>
+                </div>
+                <div id="price-info" style="font-weight: 600; color: #28a745; display: none;">
+                    Preço: R$ <span id="product-price">0.00</span>
+                </div>
+                <div>
+                    <label for="quantity-input">Quantidade:</label>
+                    <input type="number" name="quantity" id="quantity-input" placeholder="Quantidade" required min="1" max="1">
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button type="submit" class="btn btn-success create-btn">Adicionar</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancelar</button>
+                </div>
+            </form>
+        `;
+
+        const productSelect = document.getElementById('product-select');
+        const quantityInput = document.getElementById('quantity-input');
+        const priceInfo = document.getElementById('price-info');
+        const priceSpan = document.getElementById('product-price');
+
+        productSelect.addEventListener('change', async function() {
+            const selectedOption = this.options[this.selectedIndex];
+
+            if (!this.value) {
+                quantityInput.max = 1;
+                priceInfo.style.display = 'none';
+                return;
+            }
+
+            const stock = selectedOption.getAttribute('data-stock');
+            quantityInput.max = stock;
+            quantityInput.value = 1;
+
+            priceInfo.style.display = 'block';
+            priceSpan.textContent = 'Carregando...';
+
+            const price = await fetchProductPrice(this.value);
+            priceSpan.textContent = price.toFixed(2);
+        });
+
+        const form = document.getElementById('add-item-form');
+        form.onsubmit = e => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const productId = formData.get('product');
+            const quantity = parseInt(formData.get('quantity'));
+
+            if (!productId) {
+                showMessage('Selecione um produto.', 'error');
+                return;
+            }
+
+            addItem(productId, quantity);
+        };
+    } catch (err) {
+        formContainer.innerHTML = `<div class="alert alert-error">Erro ao carregar produtos: ${err.message}</div>`;
+        console.error("Erro ao carregar formulário:", err);
+    }
+}
+
+// Função para adicionar item ao carrinho
+async function addItem(productId, quantity) {
+    try {
+        const url = `${API_CART_URL}${cartId}/add-item/`;
+        console.log('Adicionando item:', { url, productId, quantity });
+
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                product_id: productId,
+                quantity: quantity
+            })
+        });
+
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            console.error('Erro ao adicionar item:', errorData);
+            throw new Error(`Erro ${res.status}: ${errorData.detail || 'Erro ao adicionar item'}`);
+        }
+
+        showMessage('Item adicionado com sucesso!', 'success');
+        hideForm();
+        fetchCartItems();
+    } catch (err) {
+        showMessage(err.message || 'Erro ao adicionar item.', 'error');
+        console.error("Erro ao adicionar item:", err);
+    }
+}
+
+// Função para remover item do carrinho
+async function removeItem(itemId) {
+    if (!confirm('Deseja realmente remover este item?')) return;
+
+    try {
+        const url = `${API_CART_URL}${cartId}/remove-item/${itemId}/`;
+        console.log('Removendo item:', url);
+
+        const res = await fetch(url, {
+            method: 'POST', // Corrigido para POST
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+
+        if (!res.ok) throw new Error(`Erro ${res.status}`);
+
+        showMessage('Item removido com sucesso!', 'success');
+        fetchCartItems();
+    } catch (err) {
+        showMessage('Erro ao remover item.', 'error');
+        console.error("Erro ao remover item:", err);
+    }
+}
+
+// Inicialização quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', () => {
+    if (!cartId || cartId === 'itens') {
+        showMessage('ID do carrinho inválido na URL.', 'error');
+        console.error('Cart ID inválido:', cartId);
+        return;
+    }
+
+    const tableBody = document.querySelector('.styled-table tbody');
+    if (!tableBody) {
+        console.error('Elemento tbody não encontrado!');
+        return;
+    }
+    console.log('Elemento tbody encontrado:', tableBody);
+
+    fetchCartItems();
+
+    const addItemBtn = document.getElementById('add-item-btn');
+    if (addItemBtn) {
+        addItemBtn.addEventListener('click', showAddItemForm);
+    }
+
+    const finalizeBtn = document.getElementById('finalize-cart-btn');
+    if (finalizeBtn) {
+        finalizeBtn.addEventListener('click', async () => {
+            if (!confirm('Deseja finalizar este pedido?')) return;
+
+            try {
+                const url = `${API_CART_URL}${cartId}/finalize/`;
+                console.log('Finalizando pedido:', url);
+
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                });
+
+                if (!res.ok) throw new Error(`Erro ${res.status}`);
+
+                showMessage('Pedido finalizado com sucesso!', 'success');
+                fetchCartItems();
+            } catch(err) {
+                showMessage('Erro ao finalizar pedido.', 'error');
+                console.error("Erro ao finalizar pedido:", err);
+            }
+        });
+    }
+});
+
+// Tornar funções globais para onclick
+window.hideForm = hideForm;
+window.removeItem = removeItem;

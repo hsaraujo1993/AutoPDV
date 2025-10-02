@@ -19,7 +19,8 @@ from django.urls import path, include
 from app import api_urls
 from app.views import (
     FornecedoresView, ClientesView, CategoriasView, ProdutosView,
-    EstoqueView, PrecosView, CarrinhoView, OrdersView, HomeView
+    EstoqueView, PrecosView, CarrinhoView, OrdersView, HomeView,
+    CarrinhoItensView
 )
 
 urlpatterns = [
@@ -35,5 +36,6 @@ urlpatterns = [
     path('precos/', PrecosView.as_view(), name='precos'),
     path('carrinho/', CarrinhoView.as_view(), name='carrinho'),
     path('orders/', OrdersView.as_view(), name='orders'),
-    path('cart_items/', cart_detail.as_view(), name=''),
+    path('cart_items/', include('cart_items.urls')),
+    path('carrinho/itens/<uuid:cart_id>/', CarrinhoItensView.as_view(), name='carrinho-itens'),
 ]

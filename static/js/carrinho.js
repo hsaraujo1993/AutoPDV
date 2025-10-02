@@ -88,6 +88,11 @@ function renderCarts(carts) {
     });
 }
 
+// Função para redirecionar para página de itens do carrinho
+function openCart(cartId) {
+    window.location.href = `/carrinho/itens/${cartId}/`;
+}
+
 // ======= NOVAS FUNÇÕES DE REDIRECIONAMENTO =======
 async function createCartWithCustomer(e) {
     e.preventDefault();
@@ -113,12 +118,6 @@ async function createCartWithCustomer(e) {
     }
 }
 
-function openCart(cartId) {
-    // Redireciona para a página de detalhes ao clicar em "Abrir"
-    window.location.href = `/carrinho/${cartId}/`;
-}
-
-// As outras funções (deleteCart, showCartForm, hideForm) permanecem as mesmas.
 async function deleteCart(cartId) {
     const csrftoken = getCookie('csrftoken');
     if (!cartId) return;

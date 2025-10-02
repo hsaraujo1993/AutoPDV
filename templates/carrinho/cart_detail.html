@@ -1,36 +1,155 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Itens do Carrinho</h2>
+<section class="carrinho-section" style="max-width:1200px; margin: 0 auto; padding: 2.5rem 2rem 0 2rem;">
+    <h2 class="mb-4" style="color:var(--color-primary);font-size:2rem;font-weight:700; text-align:center;">Itens do Carrinho</h2>
+    <div id="messages" class="messages"></div>
 
-<div id="messages" class="messages"></div>
-
-<div id="cart-items-container" class="cart-table" data-cart-id="{{ cart_id }}">
-    <table class="styled-table">
-        <thead>
-            <tr>
-                <th>Produto</th>
-                <th>Quantidade</th>
-                <th>Preço Unitário (R$)</th>
-                <th>Subtotal (R$)</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody>
+    <div class="table-responsive">
+        <table id="cart-items-table" class="styled-table">
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Quantidade</th>
+                    <th>Preço Unitário (R$)</th>
+                    <th>Subtotal (R$)</th>
+                    <th class="text-center">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- preenchido via JS -->
             </tbody>
-    </table>
-
-    <div style="margin-top:1rem; display: flex; justify-content: space-between; align-items: center;" id="cart-controls">
-        <div>
-            <button class="btn create-btn" onclick="showAddItemForm()">Adicionar Item</button>
-            <button class="btn finalize-btn" id="finalize-cart-btn">Finalizar Pedido</button>
-        </div>
-        <div class="total-amount">
-            </div>
+        </table>
     </div>
-</div>
 
-<div id="form-container" class="form-card" style="display:none;"></div>
+    <div style="margin-top:1rem; display: flex; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap;" id="cart-controls">
+        <button class="btn create-btn" id="add-item-btn">Adicionar Item</button>
+        <button class="btn finalize-btn" id="finalize-cart-btn">Finalizar Pedido</button>
+        <div class="total-amount" style="font-size: 1.2rem; font-weight: 600;">
+            <!-- preenchido via JS -->
+        </div>
+    </div>
 
+    <div id="form-container" class="form-card mt-4" style="display:none;"></div>
+</section>
 <script src="/static/js/cart_detail.js"></script>
 {% endblock %}
+
+{% block scripts %}
+<script src="/static/js/cart_detail.js"></script>
+{% endblock %}
+
+<style>
+    .messages {
+        margin-bottom: 1rem;
+    }
+
+    .alert {
+        padding: 0.75rem 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0.375rem;
+        font-weight: 500;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .alert-info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+
+    .form-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    #add-item-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    #add-item-form select,
+    #add-item-form input {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 0.375rem;
+        font-size: 1rem;
+    }
+
+    #add-item-form button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .styled-table {
+        background-color: #f8f9fa;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .styled-table th,
+    .styled-table td {
+        border: 1px solid #dee2e6;
+        padding: 8px;
+        text-align: center;
+    }
+
+    .styled-table tbody tr {
+        background-color: #fff;
+    }
+
+    .styled-table thead {
+        background-color: #343a40;
+        color: #fff;
+    }
+
+    .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+</style>
