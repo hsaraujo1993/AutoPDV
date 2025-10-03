@@ -5,6 +5,6 @@ from .views import OrderItemListCreateViewAPIView, OrderItemRetrieveUpdateDestro
 
 urlpatterns = [
     path('', OrderItemListCreateViewAPIView.as_view(), name='orderitem-list-create'),
-    path('<uuid:pk>/', OrderItemRetrieveUpdateDestroyAPIView.as_view(),
+    path('<int:pk>/', OrderItemRetrieveUpdateDestroyAPIView.as_view(),
          name='orderitem-detail-update-delete'),
 ]

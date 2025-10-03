@@ -3,6 +3,7 @@
 {% block content %}
 <section class="carrinho-section" style="max-width:1200px; margin: 0 auto; padding: 2.5rem 2rem 0 2rem;">
     <h2 class="mb-4" style="color:var(--color-primary);font-size:2rem;font-weight:700; text-align:center;">Itens do Carrinho</h2>
+    <div id="cart-customer" style="text-align:center; font-size:1.2rem; margin-bottom:1rem;"></div>
     <div id="messages" class="messages"></div>
 
     <div class="table-responsive">
@@ -31,6 +32,10 @@
     </div>
 
     <div id="form-container" class="form-card mt-4" style="display:none;"></div>
+
+    <div style="margin-top:2rem; display: flex; justify-content: flex-end;">
+        <a href="/carrinho/" class="btn btn-secondary" style="text-decoration: none;">Voltar para Carrinho</a>
+    </div>
 </section>
 <script src="/static/js/cart_detail.js"></script>
 {% endblock %}

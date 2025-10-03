@@ -1,29 +1,27 @@
 import uuid
+from datetime import datetime
+
 from django.db import models
 from django.utils.crypto import get_random_string
 
 from customers.models import Customer
 
 CHOICES_STATUS_ORDER = (
-    ('pending', 'Pending'),
-    ('paid', 'Paid'),
-    ('sending', 'Sending'),
-    ('delivered', 'Delivered'),
-    ('canceled', 'Canceled'),
-    ('error', 'Error'),
+    ('paid', 'Finalizado com Sucesso'),
+    ('canceled', 'Cancelado'),
+    ('error', 'Erro'),
 )
 
 CHOICES_ORIGIN_ORDER = (
-    ('web', 'Web'),
-    ('phone', 'Phone'),
-    ('in_person', 'In Person'),
+    ('system', 'Sistema'),
+    ('web', 'Internet'),
 )
 
 CHOICES_PAYMENT_METHOD = (
-    ('credit_card', 'Credit Card'),
-    ('debit_card', 'Debit Card'),
+    ('credit_card', 'Cartão de Credito'),
+    ('debit_card', 'Cartão de Debito'),
     ('pix', 'Pix'),
-    ('cash', 'Cash'),
+    ('cash', 'Dinheiro'),
 )
 
 class Order(models.Model):
@@ -44,7 +42,7 @@ class Order(models.Model):
 
     def generate_sales_order(self):
         random_part = get_random_string(length=5).upper()
-        return f"SO-{self.created_at.strftime('%Y%m%d') if self.created_at else ''}-{random_part}"
+        return f"SO-{datetime.today().strftime('%Y%m%d')}-{random_part}"
 
     def update_total_amount(self):
         total = sum(item.subtotal for item in self.items.all())

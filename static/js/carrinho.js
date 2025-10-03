@@ -68,11 +68,10 @@ function renderCarts(carts) {
     carts.forEach(cart => {
         cartTableBody.innerHTML += `
             <tr>
-                <td>${cart.id ? cart.id : '-'}</td>
                 <td>${cart.status_cart ? cart.status_cart : '-'}</td>
                 <td>${cart.created_at ? new Date(cart.created_at).toLocaleString() : '-'}</td>
                 <td>${cart.updated_at ? new Date(cart.updated_at).toLocaleString() : '-'}</td>
-                <td>${cart.customer ? cart.customer : '-'}</td>
+                <td>${cart.customer_name ? cart.customer_name : '-'}</td>
                 <td class="text-center">
                     <div class="d-flex justify-content-center gap-2">
                         <button class="btn btn-primary" title="Abrir Carrinho" onclick="openCart('${cart.id}')">
@@ -112,7 +111,7 @@ async function createCartWithCustomer(e) {
         const cart = await res.json();
         showMessage('Carrinho criado! Redirecionando...', 'success');
         // Redireciona para a página de detalhes
-        window.location.href = `/carrinho/${cart.id}/`;
+        window.location.href = `/carrinho/itens/${cart.id}/`;
     } catch {
         showMessage('Erro ao criar carrinho.', 'error');
     }

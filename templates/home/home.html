@@ -1,8 +1,133 @@
 {% extends 'base.html' %}
 
-{% block header_title %}Página Inicial{% endblock %}
-
 {% block content %}
-<h2>Bem-vindo ao AutoStock PDV!</h2>
-<p>Escolha uma opção no menu à esquerda para começar.</p>
+<div class="dashboard-cards-wrapper" style="display: flex; flex-wrap: wrap; gap: 2.5rem; justify-content: center; align-items: center; margin: 2.5rem 0 2.5rem 0;">
+  <div class="dashboard-card">
+    <h3>Pedidos</h3>
+    <div class="dashboard-value">{{ total_pedidos }}</div>
+    <div class="dashboard-label">Total de pedidos realizados</div>
+  </div>
+  <div class="dashboard-card">
+    <h3>Vendas</h3>
+    <div class="dashboard-value">R$ {{ total_vendas }}</div>
+    <div class="dashboard-label">Total vendido</div>
+  </div>
+  <div class="dashboard-card">
+    <h3>Clientes Ativos</h3>
+    <div class="dashboard-value">{{ total_clientes }}</div>
+    <div class="dashboard-label">Clientes com pedidos</div>
+  </div>
+  <div class="dashboard-card">
+    <h3>Estoque Baixo</h3>
+    <div class="dashboard-value">{{ total_estoque_baixo }}</div>
+    <div class="dashboard-label">Produtos com estoque baixo</div>
+  </div>
+</div>
+<div class="dashboard-charts-wrapper" style="display: flex; flex-wrap: wrap; gap: 2.5rem; justify-content: center; align-items: flex-start;">
+  <div class="dashboard-chart">
+    <h3>Produtos Mais Vendidos</h3>
+    <canvas id="produtosVendidosChart" height="180"></canvas>
+  </div>
+  <div class="dashboard-chart">
+    <h3>Pedidos por Status</h3>
+    <canvas id="pedidosStatusChart" height="180"></canvas>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+  const produtosVendidosChart = document.getElementById('produtosVendidosChart').getContext('2d');
+  new Chart(produtosVendidosChart, {
+    type: 'bar',
+    data: {
+      labels: {{ produtos_mais_vendidos_labels|safe }},
+      datasets: [{
+        label: 'Vendas',
+        data: {{ produtos_mais_vendidos_data|safe }},
+        backgroundColor: 'rgba(124,58,237,0.7)',
+        borderRadius: 8,
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+  const pedidosStatusChart = document.getElementById('pedidosStatusChart').getContext('2d');
+  new Chart(pedidosStatusChart, {
+    type: 'doughnut',
+    data: {
+      labels: {{ pedidos_status_labels|safe }},
+      datasets: [{
+        data: {{ pedidos_status_data|safe }},
+        backgroundColor: [
+          'rgba(39,174,96,0.7)',
+          'rgba(230,126,34,0.7)',
+          'rgba(192,57,43,0.7)'
+        ]
+      }]
+    },
+    options: {
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+});
+</script>
+<style>
+.dashboard-cards-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  justify-content: center;
+  align-items: center;
+  margin: 2.5rem 0 2.5rem 0;
+}
+.dashboard-card {
+  background: var(--color-bg-light);
+  padding: 2rem 1.5rem;
+  border-radius: 1rem;
+  min-width: 220px;
+  max-width: 300px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.dashboard-card h3 {
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
+}
+.dashboard-value {
+  font-size: 2.2rem;
+  font-weight: 700;
+}
+.dashboard-label {
+  color: #aaa;
+  margin-top: 0.5rem;
+  font-size: 1rem;
+}
+.dashboard-charts-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  justify-content: center;
+  align-items: flex-start;
+}
+.dashboard-chart {
+  background: var(--color-bg-light);
+  padding: 2rem 1.5rem;
+  border-radius: 1rem;
+  box-shadow: var(--shadow);
+  min-width: 340px;
+  max-width: 500px;
+  margin-bottom: 2rem;
+}
+.dashboard-chart h3 {
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+</style>
 {% endblock %}

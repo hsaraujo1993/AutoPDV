@@ -100,6 +100,24 @@ async function fetchCartItems() {
         // Atualizar total
         totalAmountDiv.innerHTML = `<strong>Total: R$ ${total.toFixed(2)}</strong>`;
 
+        // Exibir nome do cliente no topo (desfeito)
+        // const cartCustomerDiv = document.getElementById('cart-customer');
+        // if (cart.customer) {
+        //     try {
+        //         const customerRes = await fetch(`/api/v1/customers/${cart.customer}/`);
+        //         if (customerRes.ok) {
+        //             const customerData = await customerRes.json();
+        //             cartCustomerDiv.textContent = customerData.name ? `Cliente: ${customerData.name}` : '';
+        //         } else {
+        //             cartCustomerDiv.textContent = '';
+        //         }
+        //     } catch (err) {
+        //         cartCustomerDiv.textContent = '';
+        //     }
+        // } else {
+        //     cartCustomerDiv.textContent = '';
+        // }
+
     } catch (err) {
         showMessage('Erro ao carregar itens do carrinho.', 'error');
         console.error("Erro ao carregar carrinho:", err);

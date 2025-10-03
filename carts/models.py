@@ -8,10 +8,10 @@ from customers.models import Customer
 # Create your models here.
 
 CHOICES_STATUS_CART = (
-    ('open', 'Open'),
-    ('pendent', 'Pendent'),
-    ('finalized', 'Finalized'),
-    ('canceled', 'Canceled'),
+    ('open', 'Aberto'),
+    ('pendent', 'Pendente'),
+    ('finalized', 'Finalizado'),
+    ('canceled', 'Cancelado'),
 )
 
 

@@ -1,4 +1,5 @@
 from django.db import models
+import uuid
 
 from carts.models import Cart
 from orders.models import Order
@@ -14,6 +15,7 @@ class OrderItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.SET_NULL, related_name='order_items', blank=True, null=True)
     quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    stock_discounted = models.BooleanField(default=False)
 
     @property
     def subtotal(self):

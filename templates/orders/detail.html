@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Pedido Realizado{% endblock %}
+{% block content %}
+<div class="order-detail-flex-wrapper" style="display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; width: 100%;">
+    <div class="order-detail-container" style="margin-top: 40px;">
+        <div class="order-summary-card" style="background: var(--color-bg-light); border-radius: 8px; box-shadow: var(--shadow); padding: 24px 28px; margin-bottom: 32px;">
+            <h2 class="order-title" style="margin-bottom: 18px; color: var(--color-primary);">Pedido Realizado</h2>
+            <div class="order-summary-info" style="display: flex; flex-direction: column; gap: 10px;">
+                <div class="order-info-row" style="display: flex; gap: 12px; align-items: center;">
+                    <span class="order-label" style="font-weight: 600; min-width: 120px;">Nº do Pedido:</span>
+                    <span class="order-value">{{ order.sales_order }}</span>
+                </div>
+                <div class="order-info-row" style="display: flex; gap: 12px; align-items: center;">
+                    <span class="order-label" style="font-weight: 600; min-width: 120px;">Cliente:</span>
+                    <span class="order-value">{{ order.customer }}</span>
+                </div>
+                <div class="order-info-row" style="display: flex; gap: 12px; align-items: center;">
+                    <span class="order-label" style="font-weight: 600; min-width: 120px;">Data:</span>
+                    <span class="order-value">{{ order.created_at|date:'d/m/Y H:i' }}</span>
+                </div>
+                <div class="order-info-row" style="display: flex; gap: 12px; align-items: center;">
+                    <span class="order-label" style="font-weight: 600; min-width: 120px;">Status:</span>
+                    <span class="order-value order-status status-{{ order.order_status|lower }}">{{ order.order_status }}</span>
+                </div>
+                <div class="order-info-row" style="display: flex; gap: 12px; align-items: center;">
+                    <span class="order-label" style="font-weight: 600; min-width: 120px;">Total:</span>
+                    <span class="order-value">R$ {{ order.total_amount }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="order-items-card">
+            <h3 class="items-title">Itens do Pedido</h3>
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Quantidade</th>
+                        <th>Preço Unitário</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.product }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>R$ {{ item.unit_price }}</td>
+                        <td>R$ {{ item.subtotal }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4">Nenhum item encontrado.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="order-actions" style="display: flex; gap: 10px; align-items: center;">
+            <a href="/orders/" class="btn btn-secondary" style="text-decoration: none;">Voltar para pedidos</a>
+            {% if order.order_status != 'Cancelado' and order.order_status != 'canceled' %}
+            <button id="cancel-order-btn" class="btn btn-danger">Cancelar</button>
+            {% endif %}
+        </div>
+        <div id="cancel-order-message"></div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cancelBtn = document.getElementById('cancel-order-btn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            if (!confirm('Tem certeza que deseja cancelar este pedido?')) return;
+            fetch(`/api/v1/orders/{{ order.id }}/`, {
+                method: 'PATCH',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ order_status: 'canceled' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('cancel-order-message').innerHTML = `<div class='alert alert-info'>${data.order_status === 'canceled' ? 'Pedido cancelado com sucesso.' : data.detail || 'Erro.'}</div>`;
+                setTimeout(() => window.location.reload(), 1500);
+            })
+            .catch(() => {
+                document.getElementById('cancel-order-message').innerHTML = `<div class='alert alert-danger'>Erro ao cancelar pedido.</div>`;
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

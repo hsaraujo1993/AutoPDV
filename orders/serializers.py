@@ -28,6 +28,21 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             'total_amount', 'payment_method', 'customer', 'items'
         ]
 
+    def update(self, instance, validated_data):
+        prev_status = instance.order_status
+        instance = super().update(instance, validated_data)
+        # Se status mudou para cancelado, devolve itens ao estoque
+        if prev_status != 'canceled' and instance.order_status == 'canceled':
+            for item in instance.order_items.all():
+                remaining = item.quantity
+                for stock in item.product.stocks.all():
+                    if remaining == 0:
+                        break
+                    stock.quantity += remaining
+                    stock.save()
+                    remaining = 0
+        return instance
+
 
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:

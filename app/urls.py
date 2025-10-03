@@ -20,7 +20,7 @@ from app import api_urls
 from app.views import (
     FornecedoresView, ClientesView, CategoriasView, ProdutosView,
     EstoqueView, PrecosView, CarrinhoView, OrdersView, HomeView,
-    CarrinhoItensView
+    CarrinhoItensView, OrderDetailView
 )
 
 urlpatterns = [
@@ -36,6 +36,7 @@ urlpatterns = [
     path('precos/', PrecosView.as_view(), name='precos'),
     path('carrinho/', CarrinhoView.as_view(), name='carrinho'),
     path('orders/', OrdersView.as_view(), name='orders'),
+    path('orders/<uuid:pk>/detail/', OrderDetailView.as_view(), name='order-detail'),
     path('cart_items/', include('cart_items.urls')),
     path('carrinho/itens/<uuid:cart_id>/', CarrinhoItensView.as_view(), name='carrinho-itens'),
 ]

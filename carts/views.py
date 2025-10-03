@@ -112,23 +112,12 @@ class UpdateCartItemQuantityView(APIView):
             return Response({"error": "Invalid quantity"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-
-from carts.models import Cart
-from orders.models import Order
-from prices.models import Price
-from orders.serializers import OrderSerializer
-
-
 class FinalizeCartView(APIView):
     def post(self, request, cart_id):
-        # 1️⃣ Recuperar o carrinho
         try:
             cart = Cart.objects.get(id=cart_id)
         except Cart.DoesNotExist:
-            return Response({"error": "Cart not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Cart not found"}, sta eu fatus=status.HTTP_404_NOT_FOUND)
 
         cart_items = cart.items.all()
         if not cart_items.exists():
@@ -137,16 +126,6 @@ class FinalizeCartView(APIView):
         if cart.status_cart != 'open':
             return Response({"error": "Only open carts can be finalized"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 2️⃣ Validar estoque
-        for item in cart_items:
-            total_stock = sum(stock.quantity for stock in item.product.stocks.all())
-            if item.quantity > total_stock:
-                return Response(
-                    {"error": f"Not enough stock for product {item.product.name}"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-        # 3️⃣ Criar pedido
         order = Order.objects.create(
             customer=cart.customer,
             origin=request.data.get('origin', 'web'),
@@ -155,9 +134,7 @@ class FinalizeCartView(APIView):
 
         total_amount = 0
 
-        # 4️⃣ Criar OrderItem e baixar estoque
         for item in cart_items:
-            # Obter preço
             try:
                 price_obj = Price.objects.get(product=item.product)
                 item_price = price_obj.sale_price
@@ -167,7 +144,6 @@ class FinalizeCartView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Criar OrderItem
             order_item = OrderItem.objects.create(
                 order=order,
                 product=item.product,
@@ -175,31 +151,14 @@ class FinalizeCartView(APIView):
                 unit_price=item_price
             )
 
-            # Baixar estoque
-            remaining = item.quantity
-            for stock in item.product.stocks.all():
-                if remaining == 0:
-                    break
-                if stock.quantity >= remaining:
-                    stock.quantity -= remaining
-                    stock.save()
-                    remaining = 0
-                else:
-                    remaining -= stock.quantity
-                    stock.quantity = 0
-                    stock.save()
-
             total_amount += item_price * item.quantity
 
-        # 5️⃣ Atualizar total do pedido
         order.total_amount = total_amount
         order.save()
 
-        # 6️⃣ Finalizar carrinho
         cart.status_cart = 'finalized'
         cart.save()
 
-        # 7️⃣ Retornar pedido finalizado
         serializer = OrderSerializer(order)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
