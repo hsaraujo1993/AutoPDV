@@ -117,7 +117,7 @@ class FinalizeCartView(APIView):
         try:
             cart = Cart.objects.get(id=cart_id)
         except Cart.DoesNotExist:
-            return Response({"error": "Cart not found"}, sta eu fatus=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Cart not found"}, status=status.HTTP_404_NOT_FOUND)
 
         cart_items = cart.items.all()
         if not cart_items.exists():
