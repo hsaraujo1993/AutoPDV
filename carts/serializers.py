@@ -17,3 +17,4 @@ class CartSerializer(serializers.ModelSerializer):
     def get_items(self, obj):
         cart_items = CartItem.objects.filter(cart=obj)
         return CartItemSerializer(cart_items, many=True).data
+

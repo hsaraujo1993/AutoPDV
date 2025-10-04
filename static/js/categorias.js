@@ -51,7 +51,7 @@ async function fetchCategorias() {
         const res = await fetch(API_URL);
         if (!res.ok) throw new Error(`Erro ${res.status}`);
         const data = await res.json();
-        renderCategorias(data);
+        renderCategorias(data.results); // Corrigido para passar apenas o array
     } catch (err) {
         showMessage('Erro ao carregar categorias: ' + err.message, 'error');
     } finally {
@@ -64,7 +64,7 @@ function renderCategorias(data) {
     tableBody.innerHTML = '';
     data.forEach(c => {
         const id = c.category_id || c.id;
-         const nomeBadge = c.name ? `<span class='badge bg-primary text-light'>${c.name}</span>` : '-';
+        const nomeBadge = c.name ? `<span class='badge bg-primary text-light'>${c.name}</span>` : '-';
         tableBody.innerHTML += `
             <tr>
                 <td>${nomeBadge}</td>

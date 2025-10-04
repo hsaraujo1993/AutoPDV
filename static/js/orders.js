@@ -20,14 +20,23 @@ function hideLoading() {
     messagesDiv.innerHTML = '';
 }
 
+// ======= PAGINAÇÃO =======
+let currentPage = 1;
+let hasNextPage = false;
+let hasPrevPage = false;
+
 // ======= FETCH ORDERS =======
-async function fetchOrders() {
+async function fetchOrders(page = 1) {
     showLoading();
     try {
-        const res = await fetch(API_URL);
+        const res = await fetch(`${API_URL}?page=${page}`);
         if (!res.ok) throw new Error(`Erro ${res.status}`);
         const data = await res.json();
-        renderOrders(data);
+        renderOrders(data.results);
+        currentPage = page;
+        hasNextPage = !!data.next;
+        hasPrevPage = !!data.previous;
+        renderPagination();
     } catch (err) {
         showMessage('Erro ao carregar pedidos: ' + err.message, 'error');
     } finally {
@@ -67,10 +76,27 @@ function renderOrders(data) {
     });
 }
 
+function renderPagination() {
+    let pagDiv = document.getElementById('orders-pagination');
+    if (!pagDiv) {
+        pagDiv = document.createElement('div');
+        pagDiv.id = 'orders-pagination';
+        pagDiv.className = 'd-flex justify-content-center gap-2 my-3';
+        tableBody.parentElement.appendChild(pagDiv);
+    }
+    pagDiv.innerHTML = `
+        <button class="btn" onclick="fetchOrders(${currentPage - 1})" ${hasPrevPage ? '' : 'disabled'}>Anterior</button>
+        <span>Página ${currentPage}</span>
+        <button class="btn" onclick="fetchOrders(${currentPage + 1})" ${hasNextPage ? '' : 'disabled'}>Avançar</button>
+    `;
+}
+
 // ======= CRUD FUNCTIONS =======
 function viewOrder(id) {
     window.location.href = `/orders/${id}/detail/`;
 }
 
 // ======= INIT =======
-document.addEventListener('DOMContentLoaded', fetchOrders);
+document.addEventListener('DOMContentLoaded', () => {
+    fetchOrders();
+});

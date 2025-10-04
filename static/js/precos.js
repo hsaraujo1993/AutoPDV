@@ -7,6 +7,10 @@ const messagesDiv = document.getElementById('messages');
 const formContainer = document.getElementById('form-container');
 const tableBody = document.querySelector('#precos-table tbody');
 
+let currentPage = 1;
+let hasNextPage = false;
+let hasPrevPage = false;
+
 // ======= UTILIDADES =======
 function getCookie(name) {
     let cookieValue = null;
@@ -37,13 +41,17 @@ function hideLoading() {
 }
 
 // ======= FETCH PREÇOS =======
-async function fetchPrecos() {
+async function fetchPrecos(page = 1) {
     showLoading();
     try {
-        const res = await fetch(API_URL);
+        const res = await fetch(`${API_URL}?page=${page}`);
         if (!res.ok) throw new Error(`Erro ${res.status}`);
         const data = await res.json();
-        renderPrecos(data);
+        renderPrecos(data.results);
+        currentPage = page;
+        hasNextPage = !!data.next;
+        hasPrevPage = !!data.previous;
+        renderPagination();
     } catch (err) {
         showMessage('Erro ao carregar preços: ' + err.message, 'error');
     } finally {
@@ -51,22 +59,66 @@ async function fetchPrecos() {
     }
 }
 
+function renderPagination() {
+    let pagDiv = document.getElementById('precos-pagination-container');
+    if (!pagDiv) {
+        // Se a div não existe, cria e insere após a tabela
+        const table = document.getElementById('precos-table');
+        if (table) {
+            pagDiv = document.createElement('div');
+            pagDiv.id = 'precos-pagination-container';
+            pagDiv.style.display = 'flex';
+            pagDiv.style.justifyContent = 'space-between';
+            pagDiv.style.alignItems = 'center';
+            pagDiv.style.gap = '2rem';
+            pagDiv.style.marginTop = '2rem';
+            table.parentNode.insertBefore(pagDiv, table.nextSibling);
+        }
+    }
+    if (!pagDiv) return;
+    // Botão Adicionar Preço à esquerda
+    const addBtn = `<button class="btn create-btn d-flex align-items-center gap-2" type="button" onclick="showForm()">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M12 5v14m7-7H5"/></svg> Adicionar Preço
+    </button>`;
+    // Paginação à direita
+    let pagBtns = '';
+    if (hasPrevPage) {
+        pagBtns += `<button class="btn" onclick="fetchPrecos(${currentPage - 1})">Anterior</button>`;
+    }
+    pagBtns += `<span style="margin:0 1rem;">Página ${currentPage}</span>`;
+    if (hasNextPage) {
+        pagBtns += `<button class="btn" onclick="fetchPrecos(${currentPage + 1})">Avançar</button>`;
+    }
+    pagDiv.innerHTML = `<div style='flex:1;'>${addBtn}</div><div style='flex:1; text-align:right;'>${pagBtns}</div>`;
+    // Depuração
+    console.log('Paginação renderizada');
+}
+
 // ======= RENDER =======
 function renderPrecos(data) {
     tableBody.innerHTML = '';
-    data.forEach(p => {
+    // Renderiza todas as linhas normalmente, sem botão na primeira célula
+    for (let i = 0; i < data.length; i++) {
+        const p = data[i];
         const id = p.id || p.price_id;
-        const produtoBadge = p.product_name ? `<span class='badge'>${p.product_name}</span>` : '';
+        const produtoBadge = p.product_name ? `<span class='badge'>${p.product_name}</span>` : '-';
+        const sku = p.sku ?? '-';
+        const oem_code = p.oem_code ?? '-';
+        const oem_alternative_code = p.oem_alternative_code ?? '-';
+        const purchase_price_without_tax = (p.purchase_price_without_tax != null && p.purchase_price_without_tax !== '') ? `<span class='money'>R$</span> <span class='money-value'>${parseFloat(p.purchase_price_without_tax).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>` : '-';
+        const purchase_price_with_tax = (p.purchase_price_with_tax != null && p.purchase_price_with_tax !== '') ? `<span class='money'>R$</span> <span class='money-value'>${parseFloat(p.purchase_price_with_tax).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>` : '-';
+        const sale_price = (p.sale_price != null && p.sale_price !== '') ? `<span class='money'>R$</span> <span class='money-value'>${parseFloat(p.sale_price).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>` : '-';
+        const profit_margin = (p.profit_margin != null && p.profit_margin !== '') ? `${Math.round(parseFloat(p.profit_margin))}%` : '-';
         tableBody.innerHTML += `
             <tr>
                 <td>${produtoBadge}</td>
-                <td>${p.sku ?? ''}</td>
-                <td>${p.oem_code ?? ''}</td>
-                <td>${p.oem_alternative_code ?? ''}</td>
-                <td>${p.purchase_price_without_tax ?? ''}</td>
-                <td>${p.purchase_price_with_tax ?? ''}</td>
-                <td>${p.sale_price ?? ''}</td>
-                <td>${p.profit_margin ?? ''}</td>
+                <td>${sku}</td>
+                <td>${oem_code}</td>
+                <td>${oem_alternative_code}</td>
+                <td>${purchase_price_without_tax}</td>
+                <td>${purchase_price_with_tax}</td>
+                <td>${sale_price}</td>
+                <td>${profit_margin}</td>
                 <td style="text-align:center;">
                     <div class="d-flex justify-content-center gap-2">
                         <button class="btn btn-success edit" onclick="editPreco('${id}')" title="Editar Preço">
@@ -81,7 +133,7 @@ function renderPrecos(data) {
                 </td>
             </tr>
         `;
-    });
+    }
 }
 
 // ======= FORM FUNCTIONS =======
@@ -217,4 +269,6 @@ async function deletePreco(id) {
 }
 
 // ======= INIT =======
-document.addEventListener('DOMContentLoaded', fetchPrecos);
+document.addEventListener('DOMContentLoaded', () => {
+    fetchPrecos();
+});

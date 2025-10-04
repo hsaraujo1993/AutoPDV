@@ -50,18 +50,41 @@ async function fetchProducts() {
     }
 }
 
-async function fetchEstoque() {
+let currentPage = 1;
+let hasNextPage = false;
+let hasPrevPage = false;
+
+async function fetchEstoque(page = 1) {
     showLoading();
     try {
-        const res = await fetch(API_URL);
+        const res = await fetch(`${API_URL}?page=${page}`);
         if (!res.ok) throw new Error(`Erro ${res.status}`);
         const data = await res.json();
-        renderEstoque(data);
+        renderEstoque(data.results);
+        currentPage = page;
+        hasNextPage = !!data.next;
+        hasPrevPage = !!data.previous;
+        renderPagination();
     } catch (err) {
         showMessage('Erro ao carregar estoque: ' + err.message, 'error');
     } finally {
         hideLoading();
     }
+}
+
+function renderPagination() {
+    let pagDiv = document.getElementById('estoque-pagination');
+    if (!pagDiv) {
+        pagDiv = document.createElement('div');
+        pagDiv.id = 'estoque-pagination';
+        pagDiv.className = 'd-flex justify-content-center gap-2 my-3';
+        tableBody.parentElement.appendChild(pagDiv);
+    }
+    pagDiv.innerHTML = `
+        <button class="btn" onclick="fetchEstoque(${currentPage - 1})" ${hasPrevPage ? '' : 'disabled'}>Anterior</button>
+        <span>Página ${currentPage}</span>
+        <button class="btn" onclick="fetchEstoque(${currentPage + 1})" ${hasNextPage ? '' : 'disabled'}>Avançar</button>
+    `;
 }
 
 async function init() {
@@ -239,4 +262,7 @@ async function deleteEstoque(id) {
 }
 
 // ======= INIT =======
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+    fetchProducts();
+    fetchEstoque();
+});

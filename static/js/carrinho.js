@@ -77,7 +77,7 @@ function renderCarts(carts) {
                         <button class="btn btn-primary" title="Abrir Carrinho" onclick="openCart('${cart.id}')">
                             Abrir
                         </button>
-                        <button class="btn btn-danger" title="Excluir Carrinho" onclick="deleteCart('${cart.id}')">
+                        <button class="btn btn-danger btn-excluir" title="Excluir Carrinho" onclick="deleteCart('${cart.id}')">
                             Excluir
                         </button>
                     </div>

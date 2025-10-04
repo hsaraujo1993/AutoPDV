@@ -8,6 +8,10 @@ const messagesDiv = document.getElementById('messages');
 const formContainer = document.getElementById('form-container');
 const tableBody = document.querySelector('#produtos-table tbody');
 
+let currentPage = 1;
+let hasNextPage = false;
+let hasPrevPage = false;
+
 // ======= UTILIDADES =======
 function showMessage(msg, type = 'success', timeout = 3000) {
     messagesDiv.innerHTML = `<div class="${type}">${msg}</div>`;
@@ -36,11 +40,15 @@ async function loadFornecedores() {
 }
 
 // ======= LISTAR PRODUTOS =======
-async function loadProdutos() {
+async function loadProdutos(page = 1) {
     try {
-        const res = await fetch(API_URL);
+        const res = await fetch(`${API_URL}?page=${page}`);
         const data = await res.json();
-        renderProdutos(data);
+        renderProdutos(data.results);
+        currentPage = page;
+        hasNextPage = !!data.next;
+        hasPrevPage = !!data.previous;
+        renderPagination();
     } catch (err) {
         console.error('Erro ao carregar produtos', err);
     }
@@ -84,6 +92,22 @@ function renderProdutos(data) {
     // Inicializar tooltips Bootstrap
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.forEach(el => new bootstrap.Tooltip(el));
+}
+
+function renderPagination() {
+    let pagDiv = document.getElementById('produtos-pagination');
+    if (!pagDiv) {
+        pagDiv = document.createElement('div');
+        pagDiv.id = 'produtos-pagination';
+        // Insere o div após a tabela
+        const table = document.getElementById('produtos-table');
+        table.parentNode.insertBefore(pagDiv, table.nextSibling);
+    }
+    pagDiv.innerHTML = `
+        <button class="btn" onclick="loadProdutos(${currentPage - 1})" ${hasPrevPage ? '' : 'disabled'}>Anterior</button>
+        <span>Página ${currentPage}</span>
+        <button class="btn" onclick="loadProdutos(${currentPage + 1})" ${hasNextPage ? '' : 'disabled'}>Avançar</button>
+    `;
 }
 
 // ======= FORMULÁRIO =======
